@@ -1,0 +1,15 @@
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\bin\Debug\net6.0-windows\ExampleSkuaPlugin.deps.json
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\bin\Debug\net6.0-windows\ExampleSkuaPlugin.dll
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin.csproj.AssemblyReference.cache
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin_MarkupCompile.cache
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin_MarkupCompile.lref
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin.g.resources
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin.AssemblyInfoInputs.cache
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin.AssemblyInfo.cs
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin.csproj.CoreCompileInputs.cache
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ExampleSkuaPlugin.dll
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\refint\ExampleSkuaPlugin.dll
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\ref\ExampleSkuaPlugin.dll
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\Loader.g.cs
+C:\Users\livij\source\repos\ExampleSkuaPlugin\ExampleSkuaPlugin\obj\Debug\net6.0-windows\Loader.baml
