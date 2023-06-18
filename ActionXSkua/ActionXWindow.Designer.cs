@@ -56,6 +56,7 @@
             label2 = new Label();
             label1 = new Label();
             ClientCheckBox = new CheckBox();
+            HeaderName = new System.ComponentModel.BackgroundWorker();
             OptionsGB.SuspendLayout();
             SendOptionsGB.SuspendLayout();
             ConnectionGB.SuspendLayout();
@@ -77,6 +78,7 @@
             // SkipCutsceneCheckBox
             // 
             SkipCutsceneCheckBox.AutoSize = true;
+            SkipCutsceneCheckBox.Enabled = false;
             SkipCutsceneCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
             SkipCutsceneCheckBox.Location = new Point(132, 64);
             SkipCutsceneCheckBox.Name = "SkipCutsceneCheckBox";
@@ -89,6 +91,7 @@
             // HidePlayersCheckBox
             // 
             HidePlayersCheckBox.AutoSize = true;
+            HidePlayersCheckBox.Enabled = false;
             HidePlayersCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
             HidePlayersCheckBox.Location = new Point(143, 41);
             HidePlayersCheckBox.Name = "HidePlayersCheckBox";
@@ -101,6 +104,7 @@
             // LagKillerCheckBox
             // 
             LagKillerCheckBox.AutoSize = true;
+            LagKillerCheckBox.Enabled = false;
             LagKillerCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
             LagKillerCheckBox.Location = new Point(18, 64);
             LagKillerCheckBox.Name = "LagKillerCheckBox";
@@ -113,6 +117,7 @@
             // ProvokeCheckBox
             // 
             ProvokeCheckBox.AutoSize = true;
+            ProvokeCheckBox.Enabled = false;
             ProvokeCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
             ProvokeCheckBox.Location = new Point(28, 41);
             ProvokeCheckBox.Name = "ProvokeCheckBox";
@@ -147,15 +152,17 @@
             HostTooCheckBox.TabIndex = 0;
             HostTooCheckBox.Text = "Host Too";
             HostTooCheckBox.UseVisualStyleBackColor = true;
+            HostTooCheckBox.Visible = false;
             // 
             // ConClientTextBox
             // 
             ConClientTextBox.AutoSize = true;
-            ConClientTextBox.Location = new Point(274, 239);
+            ConClientTextBox.Location = new Point(272, 241);
             ConClientTextBox.Name = "ConClientTextBox";
             ConClientTextBox.Size = new Size(111, 15);
             ConClientTextBox.TabIndex = 19;
             ConClientTextBox.Text = "Client Connected: 0";
+            ConClientTextBox.Visible = false;
             // 
             // LogTextBox
             // 
@@ -164,6 +171,7 @@
             LogTextBox.MaxLength = int.MaxValue;
             LogTextBox.Multiline = true;
             LogTextBox.Name = "LogTextBox";
+            LogTextBox.ReadOnly = true;
             LogTextBox.ScrollBars = ScrollBars.Vertical;
             LogTextBox.Size = new Size(463, 198);
             LogTextBox.TabIndex = 18;
@@ -242,10 +250,12 @@
             BroadcastTextBox.Size = new Size(419, 23);
             BroadcastTextBox.TabIndex = 20;
             BroadcastTextBox.Text = "Hello World!";
+            BroadcastTextBox.KeyDown += BroadcastTextBox_KeyDown;
             // 
             // InfiniteRangeCheckBox
             // 
             InfiniteRangeCheckBox.AutoSize = true;
+            InfiniteRangeCheckBox.Enabled = false;
             InfiniteRangeCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
             InfiniteRangeCheckBox.Location = new Point(138, 22);
             InfiniteRangeCheckBox.Name = "InfiniteRangeCheckBox";
@@ -270,11 +280,12 @@
             // 
             // StartConButton
             // 
+            StartConButton.FlatStyle = FlatStyle.System;
             StartConButton.Location = new Point(193, 31);
             StartConButton.Name = "StartConButton";
             StartConButton.Size = new Size(75, 51);
             StartConButton.TabIndex = 14;
-            StartConButton.Text = "Start";
+            StartConButton.Text = "Connect";
             StartConButton.UseVisualStyleBackColor = true;
             StartConButton.Click += StartConButton_Click;
             // 
@@ -304,14 +315,16 @@
             OptionsGB.Size = new Size(261, 90);
             OptionsGB.TabIndex = 17;
             OptionsGB.TabStop = false;
-            OptionsGB.Text = "Send Toggle Options";
+            OptionsGB.Text = "Client Options";
             // 
             // AutoAttackCheckBox
             // 
             AutoAttackCheckBox.AutoSize = true;
+            AutoAttackCheckBox.Enabled = false;
+            AutoAttackCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
             AutoAttackCheckBox.Location = new Point(18, 20);
             AutoAttackCheckBox.Name = "AutoAttackCheckBox";
-            AutoAttackCheckBox.Size = new Size(89, 19);
+            AutoAttackCheckBox.Size = new Size(86, 17);
             AutoAttackCheckBox.TabIndex = 14;
             AutoAttackCheckBox.Text = "Auto Attack";
             AutoAttackCheckBox.UseVisualStyleBackColor = true;
@@ -331,7 +344,7 @@
             SendOptionsGB.Size = new Size(261, 77);
             SendOptionsGB.TabIndex = 16;
             SendOptionsGB.TabStop = false;
-            SendOptionsGB.Text = "Send Options";
+            SendOptionsGB.Text = "Copy Options";
             // 
             // ConnectionGB
             // 
@@ -344,7 +357,7 @@
             ConnectionGB.Size = new Size(180, 75);
             ConnectionGB.TabIndex = 15;
             ConnectionGB.TabStop = false;
-            ConnectionGB.Text = "Host Address";
+            ConnectionGB.Text = "Connect To";
             // 
             // HostIPTextBox
             // 
@@ -387,13 +400,21 @@
             // ClientCheckBox
             // 
             ClientCheckBox.AutoSize = true;
+            ClientCheckBox.Checked = true;
+            ClientCheckBox.CheckState = CheckState.Checked;
             ClientCheckBox.Location = new Point(200, 14);
             ClientCheckBox.Name = "ClientCheckBox";
-            ClientCheckBox.Size = new Size(62, 19);
+            ClientCheckBox.Size = new Size(68, 19);
             ClientCheckBox.TabIndex = 13;
-            ClientCheckBox.Text = "Client?";
+            ClientCheckBox.Text = "Is Client";
             ClientCheckBox.UseVisualStyleBackColor = true;
             ClientCheckBox.CheckedChanged += ClientCheckBox_CheckedChanged;
+            // 
+            // HeaderName
+            // 
+            HeaderName.WorkerReportsProgress = true;
+            HeaderName.DoWork += HeaderName_DoWork;
+            HeaderName.RunWorkerCompleted += HeaderName_RunWorkerCompleted;
             // 
             // ActionXWindow
             // 
@@ -412,7 +433,8 @@
             MaximumSize = new Size(1000, 307);
             MinimumSize = new Size(517, 307);
             Name = "ActionXWindow";
-            Text = "Form1";
+            Text = "ActionX Skua";
+            FormClosing += ActionXWindow_FormClosing;
             OptionsGB.ResumeLayout(false);
             OptionsGB.PerformLayout();
             SendOptionsGB.ResumeLayout(false);
@@ -434,7 +456,7 @@
         private CheckBox CellJumpCheckBox;
         private CheckBox HostTooCheckBox;
         private Label ConClientTextBox;
-        private TextBox LogTextBox;
+        public TextBox LogTextBox;
         private CheckBox CompleteQuestCheckBox;
         private CheckBox MapJoinCheckBox;
         private CheckBox BuyCheckBox;
@@ -454,5 +476,6 @@
         private Label label2;
         private Label label1;
         private CheckBox ClientCheckBox;
+        private System.ComponentModel.BackgroundWorker HeaderName;
     }
 }

@@ -12,26 +12,18 @@ namespace ActionXSkua
         public static ActionXWindow Instance { get; } = new();
         public static IScriptInterface Bot => IScriptInterface.Instance;
 
-
         private TcpListener TCPServer;
-        private TcpClient? TCPClient;
-        private NetworkStream? ThisStream;
+        private TcpClient TCPClient;
+        private NetworkStream ThisStream;
         public MyList<Client> Clients = new();
         private static string IP => Instance.HostIPTextBox.Text;
         private static string Port => Instance.PortTextBox.Value.ToString();
-        private string? HostPName;
+        private string HostPName;
         public bool IsOn
         {
             get
             {
-                if (ClientCheckBox.Checked)
-                {
-                    return StartConButton.Text == "Disconnect";
-                }
-                else
-                {
-                    return StartConButton.Text == "Stop";
-                }
+                return ClientCheckBox.Checked ? StartConButton.Text == "Disconnect" : StartConButton.Text == "Stop";
             }
         }
         #endregion
@@ -39,11 +31,27 @@ namespace ActionXSkua
         public ActionXWindow()
         {
             InitializeComponent();
-            Clients.OnAdd += ClientsAdded;
-            Clients.OnRemove += ClientsRemoved;
+            Clients.OnAdd += ClientsChanged;
+            Clients.OnRemove += ClientsChanged;
+            HeaderName.RunWorkerAsync();
         }
 
-        private void ActionX_FormClosing(object sender, FormClosingEventArgs e)
+        private void BroadcastTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                BroadcastMSG.PerformClick();
+                BroadcastTextBox.Text = "";
+            }
+        }
+
+        private void HeaderName_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        { Thread.Sleep(2500); }
+
+        private void HeaderName_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        { if (Bot.Player.LoggedIn && Bot.Player.Loaded && Bot.Map.Loaded) Text = $"ActionX Skua - {Bot.Player.Username}"; }
+
+        private void ActionXWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
             {
@@ -52,47 +60,28 @@ namespace ActionXSkua
             }
         }
 
+        #region Connection
         private async void StartConButton_Click(object sender, EventArgs e)
         {
-            if (!ClientCheckBox.Checked)
+            if (!IsOn)
             {
-                if (!IsOn)
+                DoStartUI();
+                await Task.Run(delegate ()
                 {
-                    DoStartUI();
-                    await Task.Run(delegate ()
-                    {
-                        StartHost();
-                    });
-                }
-                else
-                {
-                    DoStopUI();
-                    await Task.Run(delegate ()
-                    {
-                        StopHost();
-                    });
-                    AddLog("All connection closed");
-                }
+                    StartHost();
+                });
             }
             else
             {
-                if (!IsOn)
-                {
-                    DoStartUI();
-                    await Task.Run(delegate ()
-                    {
-                        StartHost();
-                    });
-                }
                 DoStopUI();
                 await Task.Run(delegate ()
                 {
                     StopHost();
                 });
+                AddLog("All connections closed");
             }
         }
 
-        #region Connection
         private async void StartHost()
         {
             if (!ClientCheckBox.Checked)
@@ -100,19 +89,19 @@ namespace ActionXSkua
                 try
                 {
                     int port = int.Parse(Port);
-                    IPAddress? localAddr = IPAddress.Parse(IP);
+                    IPAddress localAddr = IPAddress.Parse(IP);
                     TCPServer = new TcpListener(localAddr, port);
                     TCPServer.Start();
                     for (; ; )
                     {
-                        TcpClient? tcpClient = await TCPServer.AcceptTcpClientAsync();
-                        TcpClient? client = tcpClient;
+                        TcpClient tcpClient = await TCPServer.AcceptTcpClientAsync();
+                        TcpClient client = tcpClient;
                         AddLog("[Client connected]");
-                        NetworkStream? stream = client.GetStream();
+                        NetworkStream stream = client.GetStream();
                         Clients.Add(new Client(client, stream));
                         if (Bot.Player.LoggedIn && Bot.Map.Loaded)
                         {
-                            SendHCMSG(string.Format("$HostName:{0}", Bot.Player.Username), "h");
+                            SendHCMSG(string.Format("$HostName:{0}", Bot.Player.Username), "c");
                         }
                     }
                 }
@@ -146,7 +135,7 @@ namespace ActionXSkua
             {
                 try
                 {
-                    string? server = IP;
+                    string server = IP;
                     int port = int.Parse(Port);
                     TCPClient = new TcpClient(server, port);
                     ThisStream = TCPClient.GetStream();
@@ -192,7 +181,6 @@ namespace ActionXSkua
                 ClientCheckBox.Enabled = false;
                 ConnectionGB.Enabled = false;
                 StartConButton.Text = "Stop";
-                Bot.Flash.FlashCall += PacketStream;
             }
             else
             {
@@ -228,18 +216,9 @@ namespace ActionXSkua
             DoStopUI();
         }
 
-        private void ClientsAdded(object sender, EventArgs e)
+        private void ClientsChanged(object sender, EventArgs e)
         {
-            StartConButton.Enabled = false;
-            ConClientTextBox.Text = string.Format("Client Connected: {0}", Clients.Count);
-        }
-
-        private void ClientsRemoved(object sender, EventArgs e)
-        {
-            if (Clients.Count == 0)
-            {
-                StartConButton.Enabled = true;
-            }
+            StartConButton.Enabled = StartConButton.Enabled ? Clients.Count == 0 : Clients.Count > 0;
             ConClientTextBox.Text = string.Format("Client Connected: {0}", Clients.Count);
         }
 
@@ -247,14 +226,14 @@ namespace ActionXSkua
         {
             try
             {
-                byte[]? array = new byte[256];
-                string? empty = string.Empty;
+                byte[] array = new byte[256];
+                string empty = string.Empty;
                 int count;
                 while ((count = ThisStream.Read(array, 0, array.Length)) != 0)
                 {
                     empty = Encoding.ASCII.GetString(array, 0, count);
                     AddLog($" * Received: {empty}");
-                    if (empty.StartsWith("%") || empty.StartsWith("$"))
+                    if (empty.StartsWith("%") || empty.StartsWith("$") || empty.StartsWith("@@"))
                     {
                         CopyPacket(empty);
                     }
@@ -287,31 +266,36 @@ namespace ActionXSkua
 
         private void BroadcastMSG_Click(object sender, EventArgs e)
         {
-            string? message = BroadcastTextBox.Text;
+            string message = BroadcastTextBox.Text;
             if (IsOn && !ClientCheckBox.Checked)
-            {
-                SendHCMSG(message, "h");
-            }
-            else if (IsOn && ClientCheckBox.Checked)
             {
                 SendHCMSG(message, "c");
             }
+            else if (IsOn && ClientCheckBox.Checked)
+            {
+                SendHCMSG(message, "h");
+            }
         }
 
-        private async void SendHCMSG(string message, string type = "h")
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="sentTo">Sending to c(host to client) or h(client to host)</param>
+        private async void SendHCMSG(string message, string sentTo = "c")
         {
-            if (type.ToLower() == "h")
+            if (sentTo.ToLower() == "c")
             {
                 foreach (Client client in Clients)
                 {
                     await client.SendMessage(message);
                 }
             }
-            else if (type.ToLower() == "c")
+            else if (sentTo.ToLower() == "h")
             {
                 try
                 {
-                    byte[]? bytes = Encoding.ASCII.GetBytes(message);
+                    byte[] bytes = Encoding.ASCII.GetBytes(message);
                     ThisStream.Write(bytes, 0, bytes.Length);
                     AddLog($" * {Bot.Player.Username}: {message}");
                 }
@@ -324,37 +308,31 @@ namespace ActionXSkua
 
         public void AddLog(string text)
         {
-            TextBox? textBox = LogTextBox;
-            textBox.Text = textBox.Text + text + "\r\n";
+            TextBox textBox = LogTextBox;
+            textBox.AppendText(text);
+            textBox.AppendText("\r\n");
         }
         #endregion
 
         #region CheckBoxes
         private void ClientCheckBox_CheckedChanged(object sender, EventArgs e)
         {
+            ConnectionGB.Text = ClientCheckBox.Checked ? "Connect To" : "Host Address";
+            SendOptionsGB.Text = ClientCheckBox.Checked ? "Copy Options" : "Send Options";
+            StartConButton.Text = ClientCheckBox.Checked ? "Connect" : "Start";
+            OptionsGB.Text = ClientCheckBox.Checked ? "Client Options" : "Send Toggle Options";
+            ConClientTextBox.Visible = !ClientCheckBox.Checked;
+            HostTooCheckBox.Visible = !ClientCheckBox.Checked;
+            UnlockLabel.Visible = ClientCheckBox.Checked;
+            AutoAttackCheckBox.Enabled = !ClientCheckBox.Checked;
+            InfiniteRangeCheckBox.Enabled = !ClientCheckBox.Checked;
+            SkipCutsceneCheckBox.Enabled = !ClientCheckBox.Checked;
+            ProvokeCheckBox.Enabled = !ClientCheckBox.Checked;
+            LagKillerCheckBox.Enabled = !ClientCheckBox.Checked;
+            HidePlayersCheckBox.Enabled = !ClientCheckBox.Checked;
+
             if (ClientCheckBox.Checked)
             {
-                ConnectionGB.Text = "Connect To";
-                SendOptionsGB.Text = "Copy Options";
-                StartConButton.Text = "Connect";
-                OptionsGB.Text = "Client Options";
-                ConClientTextBox.Visible = false;
-                HostTooCheckBox.Visible = false;
-                UnlockLabel.Visible = true;
-                AutoAttackCheckBox.Enabled = false;
-                InfiniteRangeCheckBox.Enabled = false;
-                SkipCutsceneCheckBox.Enabled = false;
-                ProvokeCheckBox.Enabled = false;
-                LagKillerCheckBox.Enabled = false;
-                HidePlayersCheckBox.Enabled = false;
-
-                AutoAttackCheckBox.MouseUp += CheckBox_MouseUp;
-                InfiniteRangeCheckBox.MouseUp += CheckBox_MouseUp;
-                SkipCutsceneCheckBox.MouseUp += CheckBox_MouseUp;
-                ProvokeCheckBox.MouseUp += CheckBox_MouseUp;
-                LagKillerCheckBox.MouseUp += CheckBox_MouseUp;
-                HidePlayersCheckBox.MouseUp += CheckBox_MouseUp;
-
                 AutoAttackCheckBox.CheckedChanged += CheckBox_CheckedChanged;
                 InfiniteRangeCheckBox.CheckedChanged += CheckBox_CheckedChanged;
                 SkipCutsceneCheckBox.CheckedChanged += CheckBox_CheckedChanged;
@@ -364,27 +342,6 @@ namespace ActionXSkua
             }
             else
             {
-                ConnectionGB.Text = "Host Address";
-                SendOptionsGB.Text = "Send Options";
-                StartConButton.Text = "Start";
-                OptionsGB.Text = "Send Toggle Options";
-                ConClientTextBox.Visible = true;
-                HostTooCheckBox.Visible = true;
-                UnlockLabel.Visible = false;
-                AutoAttackCheckBox.Enabled = true;
-                InfiniteRangeCheckBox.Enabled = true;
-                SkipCutsceneCheckBox.Enabled = true;
-                ProvokeCheckBox.Enabled = true;
-                LagKillerCheckBox.Enabled = true;
-                HidePlayersCheckBox.Enabled = true;
-
-                AutoAttackCheckBox.MouseUp -= CheckBox_MouseUp;
-                InfiniteRangeCheckBox.MouseUp -= CheckBox_MouseUp;
-                SkipCutsceneCheckBox.MouseUp -= CheckBox_MouseUp;
-                ProvokeCheckBox.MouseUp -= CheckBox_MouseUp;
-                LagKillerCheckBox.MouseUp -= CheckBox_MouseUp;
-                HidePlayersCheckBox.MouseUp -= CheckBox_MouseUp;
-
                 AutoAttackCheckBox.CheckedChanged -= CheckBox_CheckedChanged;
                 InfiniteRangeCheckBox.CheckedChanged -= CheckBox_CheckedChanged;
                 SkipCutsceneCheckBox.CheckedChanged -= CheckBox_CheckedChanged;
@@ -394,92 +351,61 @@ namespace ActionXSkua
             }
         }
 
+        public bool isUnlocked = false;
         private void UnlockLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            AutoAttackCheckBox.Enabled = true;
-            InfiniteRangeCheckBox.Enabled = true;
-            SkipCutsceneCheckBox.Enabled = true;
-            ProvokeCheckBox.Enabled = true;
-            LagKillerCheckBox.Enabled = true;
-            HidePlayersCheckBox.Enabled = true;
-        }
-
-        private void CheckBox_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                CheckBox? checkBox = sender as CheckBox;
-                checkBox.Enabled = !checkBox.Enabled;
-            }
+            AutoAttackCheckBox.Enabled = !AutoAttackCheckBox.Enabled;
+            InfiniteRangeCheckBox.Enabled = !InfiniteRangeCheckBox.Enabled;
+            SkipCutsceneCheckBox.Enabled = !SkipCutsceneCheckBox.Enabled;
+            ProvokeCheckBox.Enabled = !ProvokeCheckBox.Enabled;
+            LagKillerCheckBox.Enabled = !LagKillerCheckBox.Enabled;
+            HidePlayersCheckBox.Enabled = !HidePlayersCheckBox.Enabled;
+            isUnlocked = !isUnlocked;
+            UnlockLabel.Text = isUnlocked ? "Lock" : "Unlock";
         }
 
         private void CheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            CheckBox? checkBox = sender as CheckBox;
+            CheckBox checkBox = sender as CheckBox;
             if (ClientCheckBox.Checked)
             {
                 if (checkBox == ProvokeCheckBox)
                 {
                     Bot.Options.AggroMonsters = ProvokeCheckBox.Checked;
-                    if (!ProvokeCheckBox.Checked && Bot.Player.LoggedIn)
-                    {
-                        Bot.Map.Jump(Bot.Player.Cell, Bot.Player.Pad);
-                        return;
-                    }
+                    return;
                 }
-                else
+                else if (!ProvokeCheckBox.Checked && Bot.Player.LoggedIn)
                 {
-                    if (checkBox == InfiniteRangeCheckBox)
-                    {
-                        Bot.Options.InfiniteRange = InfiniteRangeCheckBox.Checked;
-                        return;
-                    }
-                    if (checkBox == LagKillerCheckBox)
-                    {
-                        Bot.Options.LagKiller = LagKillerCheckBox.Checked;
-                        return;
-                    }
-                    if (checkBox == SkipCutsceneCheckBox)
-                    {
-                        Bot.Options.SkipCutscenes = SkipCutsceneCheckBox.Checked;
-                        return;
-                    }
-                    if (checkBox == HidePlayersCheckBox)
-                    {
-                        Bot.Options.HidePlayers = HidePlayersCheckBox.Checked;
-                    }
+                    Bot.Combat.Exit();
+                    return;
+                }
+                if (checkBox == InfiniteRangeCheckBox)
+                {
+                    Bot.Options.InfiniteRange = InfiniteRangeCheckBox.Checked;
+                    return;
+                }
+                if (checkBox == LagKillerCheckBox)
+                {
+                    Bot.Options.LagKiller = LagKillerCheckBox.Checked;
+                    return;
+                }
+                if (checkBox == SkipCutsceneCheckBox)
+                {
+                    Bot.Options.SkipCutscenes = SkipCutsceneCheckBox.Checked;
+                    return;
+                }
+                if (checkBox == HidePlayersCheckBox)
+                {
+                    Bot.Options.HidePlayers = HidePlayersCheckBox.Checked;
+                    return;
                 }
             }
-        }
-
-        private void LogTextBox_TextChanged(object sender, EventArgs e)
-        {
-            LogTextBox.SelectionStart = LogTextBox.TextLength;
-            LogTextBox.ScrollToCaret();
         }
 
         private async void AutoAttackCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (!ClientCheckBox.Checked) SendHCMSG(string.Format("$AutoAttack:{0}", AutoAttackCheckBox.Checked), "h");
-            if (HostTooCheckBox.Checked && AutoAttackCheckBox.Checked && Bot.Player.LoggedIn && Bot.Map.Loaded && Bot.Monsters.MapMonsters.Count != 0)
-            {
-                int i = 1;
-                while (i <= 4 && AutoAttackCheckBox.Checked)
-                {
-                    Bot.Combat.Attack("*");
-                    if (Bot.Skills.CanUseSkill(i))
-                    {
-                        Bot.Skills.UseSkill(i);
-                    }
-                    await Task.Delay(50);
-                    if (i == 4)
-                    {
-                        i = 0;
-                    }
-                    i++;
-                }
-            }
-            else if (ClientCheckBox.Checked && AutoAttackCheckBox.Checked && Bot.Player.LoggedIn && Bot.Map.Loaded && Bot.Monsters.MapMonsters.Count != 0)
+            if (!ClientCheckBox.Checked) SendHCMSG(string.Format("$AutoAttack:{0}", AutoAttackCheckBox.Checked), "c");
+            if (HostTooCheckBox.Checked || ClientCheckBox.Checked && AutoAttackCheckBox.Checked && Bot.Player.LoggedIn && Bot.Map.Loaded && Bot.Monsters.MapMonsters.Count != 0)
             {
                 int i = 1;
                 while (i <= 4 && AutoAttackCheckBox.Checked)
@@ -501,7 +427,7 @@ namespace ActionXSkua
 
         private void InfiniteRangeCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            SendHCMSG(string.Format("$InfiniteRange:{0}", InfiniteRangeCheckBox.Checked), "h");
+            SendHCMSG(string.Format("$InfiniteRange:{0}", InfiniteRangeCheckBox.Checked), "c");
             if (HostTooCheckBox.Checked)
             {
                 Bot.Options.InfiniteRange = InfiniteRangeCheckBox.Checked;
@@ -510,20 +436,20 @@ namespace ActionXSkua
 
         private void ProvokeCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            SendHCMSG(string.Format("$Provoke:{0}", ProvokeCheckBox.Checked), "h");
+            SendHCMSG(string.Format("$Provoke:{0}", ProvokeCheckBox.Checked), "c");
             if (HostTooCheckBox.Checked)
             {
                 Bot.Options.AggroMonsters = ProvokeCheckBox.Checked;
                 if (!ProvokeCheckBox.Checked)
                 {
-                    Bot.Map.Jump(Bot.Player.Cell, Bot.Player.Pad);
+                    Bot.Combat.Exit();
                 }
             }
         }
 
         private void LagKillerCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            SendHCMSG(string.Format("$LagKiller:{0}", LagKillerCheckBox.Checked), "h");
+            SendHCMSG(string.Format("$LagKiller:{0}", LagKillerCheckBox.Checked), "c");
             if (HostTooCheckBox.Checked)
             {
                 Bot.Options.LagKiller = LagKillerCheckBox.Checked;
@@ -532,7 +458,7 @@ namespace ActionXSkua
 
         private void HidePlayersCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            SendHCMSG(string.Format("$HidePlayer:{0}", HidePlayersCheckBox.Checked), "h");
+            SendHCMSG(string.Format("$HidePlayer:{0}", HidePlayersCheckBox.Checked), "c");
             if (HostTooCheckBox.Checked)
             {
                 Bot.Options.HidePlayers = HidePlayersCheckBox.Checked;
@@ -541,7 +467,7 @@ namespace ActionXSkua
 
         private void SkipCutsceneCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            SendHCMSG(string.Format("$SkipCuts:{0}", SkipCutsceneCheckBox.Checked), "h");
+            SendHCMSG(string.Format("$SkipCuts:{0}", SkipCutsceneCheckBox.Checked), "c");
             if (HostTooCheckBox.Checked)
             {
                 Bot.Options.SkipCutscenes = SkipCutsceneCheckBox.Checked;
@@ -556,43 +482,43 @@ namespace ActionXSkua
             {
                 if (function == "packet")
                 {
-                    string? raw = args[0].ToString();
-                    string[]? msg = raw.Split('%');
-                    string? command = msg[3];
+                    string raw = args[0].ToString();
+                    string[] msg = raw.Split('%');
+                    string command = msg[3];
                     if (LoadQuestCheckBox.Checked && command == "getQuests")
                     {
                         AddLog(" - Action: " + raw);
-                        SendHCMSG(raw, "h");
+                        SendHCMSG(raw, "c");
                     }
                     else if (AcceptQuestCheckBox.Checked && command == "acceptQuest")
                     {
                         AddLog(" - Action: " + raw);
-                        SendHCMSG(raw, "h");
+                        SendHCMSG(raw, "c");
                     }
                     else if (CompleteQuestCheckBox.Checked && command == "tryQuestComplete")
                     {
                         AddLog(" - Action: " + raw);
-                        SendHCMSG(raw, "h");
+                        SendHCMSG(raw, "c");
                     }
                     else if (GetMapItemCheckBox.Checked && command == "getMapItem")
                     {
                         AddLog(" - Action: " + raw);
-                        SendHCMSG(raw, "h");
+                        SendHCMSG(raw, "c");
                     }
                     else if (MapJoinCheckBox.Checked && ((command == "cmd" && msg[5] == "tfer") || command == "house"))
                     {
                         AddLog(" - Action: " + raw);
-                        SendHCMSG(raw, "h");
+                        SendHCMSG(raw, "c");
                     }
                     else if (CellJumpCheckBox.Checked && command == "moveToCell")
                     {
                         AddLog(" - Action: " + raw);
-                        SendHCMSG(raw, "h");
+                        SendHCMSG(raw, "c");
                     }
                     else if (BuyCheckBox.Checked && command == "buyItem")
                     {
                         AddLog(" - Action: " + raw);
-                        SendHCMSG(raw, "h");
+                        SendHCMSG(raw, "c");
                     }
                 }
             }
@@ -611,71 +537,71 @@ namespace ActionXSkua
                     if (raw.StartsWith("$HostName"))
                     {
                         HostPName = raw.Split(new char[] { ':' })[1].ToString();
-                        SendHCMSG($"{HostPName} Recieved from {Bot.Player.Username}", "c");
+                        SendHCMSG($"Host Name Recieved - {Bot.Player.Username}", "h");
                     }
                     else if (raw.StartsWith("$AutoAttack"))
                     {
-                        if (AutoAttackCheckBox.Enabled)
-                        {
-                            bool setToThis = bool.Parse(raw.Split(new char[] { ':' })[1]);
-                            AutoAttackCheckBox.Checked = setToThis;
-                        }
+                        bool setToThis = bool.Parse(raw.Split(new char[] { ':' })[1]);
+                        AutoAttackCheckBox.Checked = setToThis;
                     }
                     else if (raw.StartsWith("$Provoke"))
                     {
-                        if (ProvokeCheckBox.Enabled)
-                        {
-                            bool setToThis2 = bool.Parse(raw.Split(new char[] { ':' })[1]);
-                            Bot.Options.AggroMonsters = setToThis2;
-                            ProvokeCheckBox.Checked = setToThis2;
-                            if (!ProvokeCheckBox.Checked)
-                            {
-                                Bot.Map.Jump(Bot.Player.Cell, Bot.Player.Pad);
-                            }
-                        }
+                        bool setToThis2 = bool.Parse(raw.Split(new char[] { ':' })[1]);
+                        Bot.Options.AggroMonsters = setToThis2;
+                        ProvokeCheckBox.Checked = setToThis2;
+
+                        if (!setToThis2)
+                            Bot.Combat.Exit();
                     }
                     else if (raw.StartsWith("$InfiniteRange"))
                     {
-                        if (InfiniteRangeCheckBox.Enabled)
-                        {
-                            bool setToThis3 = bool.Parse(raw.Split(new char[] { ':' })[1]);
-                            Bot.Options.InfiniteRange = setToThis3;
-                            InfiniteRangeCheckBox.Checked = setToThis3;
-                        }
+                        bool setToThis3 = bool.Parse(raw.Split(new char[] { ':' })[1]);
+                        Bot.Options.InfiniteRange = setToThis3;
+                        InfiniteRangeCheckBox.Checked = setToThis3;
                     }
                     else if (raw.StartsWith("$LagKiller"))
                     {
-                        if (LagKillerCheckBox.Enabled)
-                        {
-                            bool setToThis4 = bool.Parse(raw.Split(new char[] { ':' })[1]);
-                            Bot.Options.LagKiller = setToThis4;
-                            LagKillerCheckBox.Checked = setToThis4;
-                        }
+                        bool setToThis4 = bool.Parse(raw.Split(new char[] { ':' })[1]);
+                        Bot.Options.LagKiller = setToThis4;
+                        LagKillerCheckBox.Checked = setToThis4;
                     }
                     else if (raw.StartsWith("$SkipCuts"))
                     {
-                        if (SkipCutsceneCheckBox.Enabled)
-                        {
-                            bool setToThis5 = bool.Parse(raw.Split(new char[] { ':' })[1]);
-                            Bot.Options.SkipCutscenes = setToThis5;
-                            SkipCutsceneCheckBox.Checked = setToThis5;
-                        }
+                        bool setToThis5 = bool.Parse(raw.Split(new char[] { ':' })[1]);
+                        Bot.Options.SkipCutscenes = setToThis5;
+                        SkipCutsceneCheckBox.Checked = setToThis5;
                     }
-                    else if (raw.StartsWith("$HidePlayer") && HidePlayersCheckBox.Enabled)
+                    else if (raw.StartsWith("$HidePlayer"))
                     {
                         bool setToThis6 = bool.Parse(raw.Split(new char[] { ':' })[1]);
                         Bot.Options.HidePlayers = setToThis6;
                         HidePlayersCheckBox.Checked = setToThis6;
                     }
                 }
+                else if (raw.StartsWith("@@"))
+                {
+                    string cmdFromHost = raw.Split("@@")[1].ToString().ToLower();
+                    if (cmdFromHost == "cmds" || cmdFromHost == "help" || cmdFromHost == "commands")
+                    {
+                        AddLog("summon (brings all clients)\r\nreset (makes clients rest)\r\nhelp||cmd||commands (shows this)");
+                    }
+                    else if (cmdFromHost == "summon")
+                    {
+                        Bot.Player.Goto(HostPName);
+                    }
+                    else if (cmdFromHost == "rest")
+                    {
+                        Bot.Player.Rest();
+                    }
+                }
                 else
                 {
-                    string[]? msg = raw.Split(new char[] { '%' });
-                    string? command = msg[3];
+                    string[] msg = raw.Split(new char[] { '%' });
+                    string command = msg[3];
                     if (LoadQuestCheckBox.Checked && command == "getQuests")
                     {
                         msg[4] = Bot.Map.RoomID.ToString();
-                        string[]? questsId = msg.Skip(5).Take(msg.Length - 6).ToArray<string>();
+                        string[] questsId = msg.Skip(5).Take(msg.Length - 6).ToArray<string>();
                         if (questsId.All((string s) => s.All(new Func<char, bool>(char.IsDigit))))
                         {
                             Bot.Quests.Load(questsId.Select(new Func<string, int>(int.Parse)).ToArray());
@@ -695,14 +621,14 @@ namespace ActionXSkua
                     else if (CompleteQuestCheckBox.Checked && command == "tryQuestComplete")
                     {
                         msg[4] = Bot.Map.RoomID.ToString();
-                        string? newPacket2 = string.Join("%", msg);
+                        string newPacket2 = string.Join("%", msg);
                         Bot.Send.ClientPacket(newPacket2, "String");
                         AddLog(" - Executed: " + newPacket2);
                     }
                     else if (GetMapItemCheckBox.Checked && command == "getMapItem")
                     {
                         msg[4] = Bot.Map.RoomID.ToString();
-                        string? newPacket3 = string.Join("%", msg);
+                        string newPacket3 = string.Join("%", msg);
                         Bot.Send.ClientPacket(newPacket3, "String");
                         AddLog(" - Executed: " + newPacket3);
                     }
@@ -714,7 +640,7 @@ namespace ActionXSkua
                         }
                         else
                         {
-                            string? map = msg[7];
+                            string map = msg[7];
                             if (Bot.Player.State == 2)
                             {
                                 Bot.Map.Jump("Blank", "Spawn");
@@ -730,14 +656,14 @@ namespace ActionXSkua
                     }
                     else if (CellJumpCheckBox.Checked && command == "moveToCell")
                     {
-                        string? cell = msg[5];
-                        string? pad = msg[6];
+                        string cell = msg[5];
+                        string pad = msg[6];
                         Bot.Map.Jump(cell, pad);
                         AddLog(" - Executed: " + cell + "," + pad);
                     }
                     else if (BuyCheckBox.Checked && command == "buyItem")
                     {
-                        int? itemId = int.Parse(msg[5]);
+                        int itemId = int.Parse(msg[5]);
                         int shopId = int.Parse(msg[6]);
                         Bot.Shops.Load(shopId);
                         int i = 0;
@@ -749,13 +675,13 @@ namespace ActionXSkua
                         }
                         if (Bot.Shops.IsLoaded && Bot.Player.LoggedIn && BuyCheckBox.Checked && IsOn)
                         {
-                            string? itemName = Bot.Shops.Items.Find(o => o.ID == itemId).Name;
+                            string itemName = Bot.Shops.Items.Find(o => o.ID == itemId).Name;
                             Bot.Shops.BuyItem(itemName);
                             AddLog(" - Executed: Buy " + itemName);
                         }
                         else
                         {
-                            AddLog(string.Format(" - Execution Cancelled: : Buy {0}/{1}", shopId, itemId));
+                            AddLog(string.Format(" - Execution Cancelled: Buy {0}/{1}", shopId, itemId));
                         }
                     }
                 }
