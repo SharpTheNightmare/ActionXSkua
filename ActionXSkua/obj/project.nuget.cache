@@ -1,14 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Pf5pGsc64PXKfo8/LuvEbhWZuoe6qPlQfaIsnG7D+GrzcigsykXTeP0ObjnRnVAu3IpES2HGwq6kH6mfreEV4Q==",
+  "dgSpecHash": "xfR4ZHvb4S7SRatTwu5wKGIY9PkQ0jCxdtc8EaCIuqS7Wb5D921CK2/wi5QPSVwRXzWF1qxvI0T6CHOR48+JAg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\koent\\OneDrive\\Documents\\Repositories\\ExampleSkuaPlugin\\ExampleSkuaPlugin\\ExampleSkuaPlugin.csproj",
-  "expectedPackageFiles": [
-    "C:\\Users\\koent\\.nuget\\packages\\materialdesigncolors\\2.1.4\\materialdesigncolors.2.1.4.nupkg.sha512",
-    "C:\\Users\\koent\\.nuget\\packages\\materialdesignthemes\\4.9.0\\materialdesignthemes.4.9.0.nupkg.sha512",
-    "C:\\Users\\koent\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\7.0.0\\microsoft.extensions.dependencyinjection.7.0.0.nupkg.sha512",
-    "C:\\Users\\koent\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\7.0.0\\microsoft.extensions.dependencyinjection.abstractions.7.0.0.nupkg.sha512",
-    "C:\\Users\\koent\\.nuget\\packages\\microsoft.xaml.behaviors.wpf\\1.1.39\\microsoft.xaml.behaviors.wpf.1.1.39.nupkg.sha512"
-  ],
+  "projectFilePath": "C:\\Users\\koent\\OneDrive\\Documents\\Repositories\\ActionXSkua\\ActionXSkua\\ActionXSkua.csproj",
+  "expectedPackageFiles": [],
   "logs": []
 }
