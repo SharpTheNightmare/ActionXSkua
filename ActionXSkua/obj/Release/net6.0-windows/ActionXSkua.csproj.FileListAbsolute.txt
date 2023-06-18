@@ -1,0 +1,10 @@
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\bin\Release\net6.0-windows\ActionXSkua.deps.json
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\bin\Release\net6.0-windows\ActionXSkua.dll
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\obj\Release\net6.0-windows\ActionXSkua.csproj.AssemblyReference.cache
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\obj\Release\net6.0-windows\ActionXSkua.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\obj\Release\net6.0-windows\ActionXSkua.AssemblyInfoInputs.cache
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\obj\Release\net6.0-windows\ActionXSkua.AssemblyInfo.cs
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\obj\Release\net6.0-windows\ActionXSkua.csproj.CoreCompileInputs.cache
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\obj\Release\net6.0-windows\ActionXSkua.dll
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\obj\Release\net6.0-windows\ActionXSkua.ActionXWindow.resources
+C:\Users\koent\OneDrive\Documents\Repositories\ActionXSkua\ActionXSkua\obj\Release\net6.0-windows\ActionXSkua.csproj.GenerateResource.cache
