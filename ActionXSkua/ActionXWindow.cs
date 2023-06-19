@@ -46,10 +46,11 @@ namespace ActionXSkua
         }
 
         private void HeaderName_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
-        { Thread.Sleep(2500); }
+        { Thread.Sleep(1000); }
 
         private void HeaderName_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
-        { if (Bot.Player.LoggedIn && Bot.Player.Loaded && Bot.Map.Loaded) Text = $"ActionX Skua - {Bot.Player.Username}"; }
+        { if (Bot.Player.LoggedIn && Bot.Player.Loaded && Bot.Map.Loaded) Text = $"ActionX Skua - {Bot.Player.Username}"; HeaderName.RunWorkerAsync(); }
+
 
         private void ActionXWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -181,6 +182,7 @@ namespace ActionXSkua
                 ClientCheckBox.Enabled = false;
                 ConnectionGB.Enabled = false;
                 StartConButton.Text = "Stop";
+                Bot.Flash.FlashCall += PacketStream;
             }
             else
             {
@@ -218,7 +220,7 @@ namespace ActionXSkua
 
         private void ClientsChanged(object sender, EventArgs e)
         {
-            StartConButton.Enabled = StartConButton.Enabled ? Clients.Count == 0 : Clients.Count > 0;
+            if (Clients.Count == 0) StartConButton.Enabled = true; else StartConButton.Enabled = false;
             ConClientTextBox.Text = string.Format("Client Connected: {0}", Clients.Count);
         }
 
@@ -473,6 +475,11 @@ namespace ActionXSkua
                 Bot.Options.SkipCutscenes = SkipCutsceneCheckBox.Checked;
             }
         }
+
+        private void CopyWalkCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            SendHCMSG(string.Format("$CopyWalk:{0}", CopyWalkCheckBox.Checked), "c");
+        }
         #endregion
 
         #region Packets
@@ -516,6 +523,11 @@ namespace ActionXSkua
                         SendHCMSG(raw, "c");
                     }
                     else if (BuyCheckBox.Checked && command == "buyItem")
+                    {
+                        AddLog(" - Action: " + raw);
+                        SendHCMSG(raw, "c");
+                    }
+                    else if (CopyWalkCheckBox.Checked && command == "mv")
                     {
                         AddLog(" - Action: " + raw);
                         SendHCMSG(raw, "c");
@@ -577,15 +589,16 @@ namespace ActionXSkua
                         Bot.Options.HidePlayers = setToThis6;
                         HidePlayersCheckBox.Checked = setToThis6;
                     }
-                }
-                else if (raw.StartsWith("@@"))
-                {
-                    string cmdFromHost = raw.Split("@@")[1].ToString().ToLower();
-                    if (cmdFromHost == "cmds" || cmdFromHost == "help" || cmdFromHost == "commands")
+                    else if (raw.StartsWith("$CopyWalk"))
                     {
-                        AddLog("summon (brings all clients)\r\nreset (makes clients rest)\r\nhelp||cmd||commands (shows this)");
+                        bool setToThis7 = bool.Parse(raw.Split(new char[] { ':' })[1]);
+                        CopyWalkCheckBox.Checked = setToThis7;
                     }
-                    else if (cmdFromHost == "summon")
+                }
+                else if (raw.StartsWith("@"))
+                {
+                    string cmdFromHost = raw.Split("@@")[1].ToString();
+                    if (cmdFromHost == "summon")
                     {
                         Bot.Player.Goto(HostPName);
                     }
@@ -593,6 +606,7 @@ namespace ActionXSkua
                     {
                         Bot.Player.Rest();
                     }
+
                 }
                 else
                 {
@@ -658,7 +672,7 @@ namespace ActionXSkua
                     {
                         string cell = msg[5];
                         string pad = msg[6];
-                        Bot.Map.Jump(cell, pad);
+                        Bot.Map.Jump(cell, pad, false);
                         AddLog(" - Executed: " + cell + "," + pad);
                     }
                     else if (BuyCheckBox.Checked && command == "buyItem")
@@ -683,6 +697,20 @@ namespace ActionXSkua
                         {
                             AddLog(string.Format(" - Execution Cancelled: Buy {0}/{1}", shopId, itemId));
                         }
+                    }
+                    else if (CopyWalkCheckBox.Checked && command == "mv")
+                    {
+                        int x = int.Parse(msg[5]);
+                        int y = int.Parse(msg[6]);
+                        if (HostPName != null && Bot.Map.PlayerNames.Contains(HostPName) && (Bot.Player.Cell == Bot.Map.GetPlayer(HostPName).Cell))
+                        {
+                            Bot.Player.WalkTo(x, y);
+                        }
+                        else
+                        {
+                            Bot.Player.Goto(HostPName);
+                        }
+                        AddLog(" - Executed: " + $"{x}, {y}");
                     }
                 }
             }

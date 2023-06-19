@@ -50,6 +50,7 @@
             OptionsGB = new GroupBox();
             AutoAttackCheckBox = new CheckBox();
             SendOptionsGB = new GroupBox();
+            CopyWalkCheckBox = new CheckBox();
             ConnectionGB = new GroupBox();
             HostIPTextBox = new TextBox();
             PortTextBox = new NumericUpDown();
@@ -72,7 +73,6 @@
             UnlockLabel.TabIndex = 13;
             UnlockLabel.TabStop = true;
             UnlockLabel.Text = "[Unlock]";
-            UnlockLabel.Visible = false;
             UnlockLabel.LinkClicked += UnlockLabel_LinkClicked;
             // 
             // SkipCutsceneCheckBox
@@ -133,7 +133,7 @@
             CellJumpCheckBox.Checked = true;
             CellJumpCheckBox.CheckState = CheckState.Checked;
             CellJumpCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
-            CellJumpCheckBox.Location = new Point(106, 55);
+            CellJumpCheckBox.Location = new Point(85, 54);
             CellJumpCheckBox.Name = "CellJumpCheckBox";
             CellJumpCheckBox.Size = new Size(75, 17);
             CellJumpCheckBox.TabIndex = 14;
@@ -195,7 +195,7 @@
             MapJoinCheckBox.Checked = true;
             MapJoinCheckBox.CheckState = CheckState.Checked;
             MapJoinCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
-            MapJoinCheckBox.Location = new Point(17, 55);
+            MapJoinCheckBox.Location = new Point(6, 54);
             MapJoinCheckBox.Name = "MapJoinCheckBox";
             MapJoinCheckBox.Size = new Size(73, 17);
             MapJoinCheckBox.TabIndex = 13;
@@ -208,7 +208,7 @@
             BuyCheckBox.Checked = true;
             BuyCheckBox.CheckState = CheckState.Checked;
             BuyCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
-            BuyCheckBox.Location = new Point(199, 55);
+            BuyCheckBox.Location = new Point(195, 17);
             BuyCheckBox.Name = "BuyCheckBox";
             BuyCheckBox.Size = new Size(44, 17);
             BuyCheckBox.TabIndex = 3;
@@ -221,7 +221,7 @@
             GetMapItemCheckBox.Checked = true;
             GetMapItemCheckBox.CheckState = CheckState.Checked;
             GetMapItemCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
-            GetMapItemCheckBox.Location = new Point(134, 36);
+            GetMapItemCheckBox.Location = new Point(120, 36);
             GetMapItemCheckBox.Name = "GetMapItemCheckBox";
             GetMapItemCheckBox.Size = new Size(95, 17);
             GetMapItemCheckBox.TabIndex = 5;
@@ -234,7 +234,7 @@
             AcceptQuestCheckBox.Checked = true;
             AcceptQuestCheckBox.CheckState = CheckState.Checked;
             AcceptQuestCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
-            AcceptQuestCheckBox.Location = new Point(144, 17);
+            AcceptQuestCheckBox.Location = new Point(96, 17);
             AcceptQuestCheckBox.Name = "AcceptQuestCheckBox";
             AcceptQuestCheckBox.Size = new Size(93, 17);
             AcceptQuestCheckBox.TabIndex = 2;
@@ -271,7 +271,7 @@
             LoadQuestCheckBox.Checked = true;
             LoadQuestCheckBox.CheckState = CheckState.Checked;
             LoadQuestCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
-            LoadQuestCheckBox.Location = new Point(27, 17);
+            LoadQuestCheckBox.Location = new Point(6, 17);
             LoadQuestCheckBox.Name = "LoadQuestCheckBox";
             LoadQuestCheckBox.Size = new Size(84, 17);
             LoadQuestCheckBox.TabIndex = 1;
@@ -332,6 +332,7 @@
             // 
             // SendOptionsGB
             // 
+            SendOptionsGB.Controls.Add(CopyWalkCheckBox);
             SendOptionsGB.Controls.Add(CellJumpCheckBox);
             SendOptionsGB.Controls.Add(CompleteQuestCheckBox);
             SendOptionsGB.Controls.Add(MapJoinCheckBox);
@@ -345,6 +346,18 @@
             SendOptionsGB.TabIndex = 16;
             SendOptionsGB.TabStop = false;
             SendOptionsGB.Text = "Copy Options";
+            // 
+            // CopyWalkCheckBox
+            // 
+            CopyWalkCheckBox.AutoSize = true;
+            CopyWalkCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
+            CopyWalkCheckBox.Location = new Point(166, 54);
+            CopyWalkCheckBox.Name = "CopyWalkCheckBox";
+            CopyWalkCheckBox.Size = new Size(81, 17);
+            CopyWalkCheckBox.TabIndex = 15;
+            CopyWalkCheckBox.Text = "Copy Walk";
+            CopyWalkCheckBox.UseVisualStyleBackColor = true;
+            CopyWalkCheckBox.CheckedChanged += CopyWalkCheckBox_CheckedChanged;
             // 
             // ConnectionGB
             // 
@@ -477,5 +490,6 @@
         private Label label1;
         private CheckBox ClientCheckBox;
         private System.ComponentModel.BackgroundWorker HeaderName;
+        private CheckBox CopyWalkCheckBox;
     }
 }
