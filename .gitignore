@@ -51,4 +51,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-ExampleSkuaPlugin/bin
+ActionXSkua/bin
+ActionXSkua/obj
+.vs

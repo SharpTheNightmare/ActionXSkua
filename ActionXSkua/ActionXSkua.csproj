@@ -29,26 +29,31 @@
     <DebugType>embedded</DebugType>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="if exist &quot;%25USERPROFILE%25\OneDrive\Documents\Skua&quot; copy /Y &quot;$(OutputPath)$(AssemblyName).dll&quot; &quot;%25USERPROFILE%25\OneDrive\Documents\Skua\plugins\$(AssemblyName).dll&quot;&#xD;&#xA;if exist &quot;%25USERPROFILE%25\Documents\Skua&quot; copy /Y &quot;$(OutputPath)$(AssemblyName).dll&quot; &quot;%25USERPROFILE%25\Documents\Skua\plugins\$(AssemblyName).dll&quot;" />
+  </Target>
 
   <ItemGroup>
+    <Reference Include="CommunityToolkit.Mvvm">
+      <HintPath>C:\Program Files\Skua AQW Bot\Assemblies\CommunityToolkit.Mvvm.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>C:\Program Files\Skua AQW Bot\Assemblies\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="Skua.Core">
-      <HintPath>..\..\..\..\..\..\..\Program Files\Skua\Skua AQW Bot\Assemblies\Skua.Core.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>C:\Program Files\Skua AQW Bot\Assemblies\Skua.Core.dll</HintPath>
     </Reference>
     <Reference Include="Skua.Core.Interfaces">
-      <HintPath>..\..\..\..\..\..\..\Program Files\Skua\Skua AQW Bot\Assemblies\Skua.Core.Interfaces.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>C:\Program Files\Skua AQW Bot\Assemblies\Skua.Core.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="Skua.Core.Models">
-      <HintPath>..\..\..\..\..\..\..\Program Files\Skua\Skua AQW Bot\Assemblies\Skua.Core.Models.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>C:\Program Files\Skua AQW Bot\Assemblies\Skua.Core.Models.dll</HintPath>
+    </Reference>
+    <Reference Include="Skua.Core.Utils">
+      <HintPath>C:\Program Files\Skua AQW Bot\Assemblies\Skua.Core.Utils.dll</HintPath>
     </Reference>
     <Reference Include="Skua.WPF">
-      <HintPath>..\..\..\..\..\..\..\Program Files\Skua\Skua AQW Bot\Assemblies\Skua.WPF.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>C:\Program Files\Skua AQW Bot\Assemblies\Skua.WPF.dll</HintPath>
     </Reference>
   </ItemGroup>
 

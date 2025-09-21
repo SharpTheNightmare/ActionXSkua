@@ -58,6 +58,7 @@
             label1 = new Label();
             ClientCheckBox = new CheckBox();
             HeaderName = new System.ComponentModel.BackgroundWorker();
+            LogServerCheckbox = new CheckBox();
             OptionsGB.SuspendLayout();
             SendOptionsGB.SuspendLayout();
             ConnectionGB.SuspendLayout();
@@ -148,7 +149,7 @@
             HostTooCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
             HostTooCheckBox.Location = new Point(127, 0);
             HostTooCheckBox.Name = "HostTooCheckBox";
-            HostTooCheckBox.Size = new Size(72, 17);
+            HostTooCheckBox.Size = new Size(71, 17);
             HostTooCheckBox.TabIndex = 0;
             HostTooCheckBox.Text = "Host Too";
             HostTooCheckBox.UseVisualStyleBackColor = true;
@@ -210,7 +211,7 @@
             BuyCheckBox.Font = new Font("Segoe UI", 7.75F, FontStyle.Regular, GraphicsUnit.Point);
             BuyCheckBox.Location = new Point(195, 17);
             BuyCheckBox.Name = "BuyCheckBox";
-            BuyCheckBox.Size = new Size(44, 17);
+            BuyCheckBox.Size = new Size(45, 17);
             BuyCheckBox.TabIndex = 3;
             BuyCheckBox.Text = "Buy";
             BuyCheckBox.UseVisualStyleBackColor = true;
@@ -434,6 +435,7 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(744, 268);
+            Controls.Add(LogServerCheckbox);
             Controls.Add(ConClientTextBox);
             Controls.Add(LogTextBox);
             Controls.Add(BroadcastTextBox);
@@ -491,5 +493,6 @@
         private CheckBox ClientCheckBox;
         private System.ComponentModel.BackgroundWorker HeaderName;
         private CheckBox CopyWalkCheckBox;
+        private CheckBox LogServerCheckbox;
     }
 }
