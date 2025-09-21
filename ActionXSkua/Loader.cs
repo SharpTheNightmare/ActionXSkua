@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Skua.Core.Interfaces;
+﻿using Skua.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 
