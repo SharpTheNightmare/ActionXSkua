@@ -1,8 +1,12 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
-using Skua.WPF.Flash;
+using Skua.Core.Messaging;
+using Skua.Core.Models;
+
+
 
 namespace ActionXSkua
 {
@@ -12,6 +16,8 @@ namespace ActionXSkua
         public static ActionXWindow Instance { get; } = new();
         public static IScriptInterface Bot => IScriptInterface.Instance;
 
+        private CancellationTokenSource _heartbeatCts;
+
         private TcpListener TCPServer;
         private TcpClient TCPClient;
         private NetworkStream ThisStream;
@@ -19,13 +25,7 @@ namespace ActionXSkua
         private static string IP => Instance.HostIPTextBox.Text;
         private static string Port => Instance.PortTextBox.Value.ToString();
         private string HostPName;
-        public bool IsOn
-        {
-            get
-            {
-                return ClientCheckBox.Checked ? StartConButton.Text == "Disconnect" : StartConButton.Text == "Stop";
-            }
-        }
+        public bool IsOn => ClientCheckBox.Checked ? StartConButton.Text == "Disconnect" : StartConButton.Text == "Stop";
         #endregion
 
         public ActionXWindow()
@@ -82,7 +82,7 @@ namespace ActionXSkua
                 AddLog("All connections closed");
             }
         }
-
+        private readonly IDisposable _registration;
         private async void StartHost()
         {
             if (!ClientCheckBox.Checked)
@@ -102,7 +102,7 @@ namespace ActionXSkua
                         Clients.Add(new Client(client, stream));
                         if (Bot.Player.LoggedIn && Bot.Map.Loaded)
                         {
-                            SendHCMSG(string.Format("$HostName:{0}", Bot.Player.Username), "c");
+                            SendHCMSG($"$HostName:{Bot.Player.Username}", "c");
                         }
                     }
                 }
@@ -141,6 +141,10 @@ namespace ActionXSkua
                     TCPClient = new TcpClient(server, port);
                     ThisStream = TCPClient.GetStream();
                     StartConButton.Enabled = true;
+                    if (Bot.Player.LoggedIn && Bot.Map.Loaded)
+                    {
+                        SendHCMSG($"$ClientName:{Bot.Player.Username}", "h");
+                    }
                     ClientListen();
                 }
                 catch (Exception ex)
@@ -175,6 +179,7 @@ namespace ActionXSkua
                 }
             }
         }
+
         private void DoStartUI()
         {
             if (!ClientCheckBox.Checked)
@@ -235,7 +240,7 @@ namespace ActionXSkua
                 {
                     empty = Encoding.ASCII.GetString(array, 0, count);
                     AddLog($" * Received: {empty}");
-                    if (empty.StartsWith("%") || empty.StartsWith("$") || empty.StartsWith("@@"))
+                    if (empty.StartsWith("%") || empty.StartsWith("$") || empty.StartsWith("@"))
                     {
                         CopyPacket(empty);
                     }
@@ -280,7 +285,7 @@ namespace ActionXSkua
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="message"></param>
         /// <param name="sentTo">Sending to c(host to client) or h(client to host)</param>
@@ -549,7 +554,7 @@ namespace ActionXSkua
                     if (raw.StartsWith("$HostName"))
                     {
                         HostPName = raw.Split(new char[] { ':' })[1].ToString();
-                        SendHCMSG($"Host Name Recieved - {Bot.Player.Username}", "h");
+                        SendHCMSG($"Host Name Recieved - {HostPName}", "h");
                     }
                     else if (raw.StartsWith("$AutoAttack"))
                     {
@@ -597,7 +602,7 @@ namespace ActionXSkua
                 }
                 else if (raw.StartsWith("@"))
                 {
-                    string cmdFromHost = raw.Split("@@")[1].ToString();
+                    string cmdFromHost = raw.Split("@")[1].ToString();
                     if (cmdFromHost == "summon")
                     {
                         Bot.Player.Goto(HostPName);
